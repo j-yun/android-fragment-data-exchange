@@ -5,38 +5,44 @@ import io.reactivex.subjects.BehaviorSubject
 import kotlin.collections.HashMap
 
 
+class DataExchangeViewModel :  ViewModel() {
+    private val dataMap:HashMap<String, BehaviorSubject<Archive>> = HashMap()
 
-
-
-class DataExchangeViewModel :  ViewModel {
-    constructor():super()
-
-    private val dataMap:HashMap<String, BehaviorSubject<DataPack>> = HashMap()
-
-    fun findDataPack(id:String): BehaviorSubject<DataPack>? {
+    @Synchronized fun findDataPack(id:String): BehaviorSubject<Archive>? {
         @Suppress("UNCHECKED_CAST")
         return dataMap[id]
     }
 
-    fun getOrCreateDataPack(id:String): BehaviorSubject<DataPack> {
+    @Synchronized fun hasDataPack(id:String): Boolean {
+        return dataMap.containsKey(id)
+    }
+
+    @Synchronized fun getOrCreateDataPack(id:String): BehaviorSubject<Archive> {
         @Suppress("UNCHECKED_CAST")
         var result = dataMap[id]
         if(result == null){
-            result = BehaviorSubject.createDefault(DataPack())
+            result = BehaviorSubject.createDefault(Archive())
             dataMap[id] = result
         }
 
         return result
     }
 
-    fun <T> saveItem(callerId:String, requestId: String, itemState:Int, data:T?) {
+    @Synchronized fun removeDataPack(id:String): Boolean {
+        if(hasDataPack(id)){
+            dataMap[id]?.onComplete()
+            dataMap.remove(id)
+            return true
+        }
+        return false
+    }
+
+    @Synchronized fun <T> saveItem(ownerId:String, requestId: String, itemState: Archive.Item.State, data:T?) {
         @Suppress("UNCHECKED_CAST")
-        val resultDataPackSubject = getOrCreateDataPack(callerId)
+        val resultDataPackSubject = getOrCreateDataPack(ownerId)
 
         val resultDataPack = resultDataPackSubject.value!!
-        val item = resultDataPack.getOrCreateItem<T>(requestId = requestId)
-        item.data = data
-        item.state = itemState
+        resultDataPack.setItem(requestId = requestId, itemState = itemState, data = data)
 
         // Caller 가 살아있는 경우를 대비하여 무조건 onNext 를 호출한다.
         resultDataPackSubject.onNext(resultDataPack)
