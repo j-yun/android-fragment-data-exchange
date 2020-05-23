@@ -18,7 +18,7 @@ fun Fragment.getOrCreateArguments(): Bundle {
     return result
 }
 
-fun Fragment.getDataExchangeOwnerId(): String? {
+fun Fragment.getDataExchangeCallerId(): String? {
     return arguments?.getBundle(DataExchangeHelper.dataExchangeBundleId)?.getString(
         DataExchangeHelper.dataExchangeOwnerId
     )
@@ -51,85 +51,178 @@ fun Fragment.getDataExchangeUniqueId(createIfEmpty:Boolean = true): String? {
     return id
 }
 
-fun Fragment.getDataExchangeSubject(ownerId:String? = null): BehaviorSubject<Archive> {
-    val vm = getDataExchangeViewModel()
-    val ownerId = ownerId ?: getOrCreateDataExchangeUniqueId()
-    return vm.getOrCreateDataPack(ownerId)
-}
 
-fun Fragment.removeDataExchangeSubject(ownerId:String? = null): Boolean {
-    val vm = getDataExchangeViewModel()
-    val oId = ownerId ?: getDataExchangeUniqueId(false) ?: return false
-    return vm.removeDataPack(oId)
-}
-
-fun <T> Fragment.getDataExchangeItemSubject(requestId:String, ownerId:String? = null): BehaviorSubject<Archive.Item<T>> {
-    val vm = getDataExchangeViewModel()
-
-    val oId = ownerId ?: getOrCreateDataExchangeUniqueId()
-    val dataPack = vm.getOrCreateDataPack(oId).value!!
-    return dataPack.getOrCreateItemSubject<T>(requestId = requestId)
-}
-
-fun Fragment.removeDataExchangeItemSubject(requestId:String, ownerId:String? = null): Boolean {
-    val vm = getDataExchangeViewModel()
-
-    val oId = ownerId ?: getOrCreateDataExchangeUniqueId()
-    val dataPack = vm.getOrCreateDataPack(oId).value!!
-    return dataPack.removeItemSubject(requestId = requestId)
-}
-
-fun Fragment.hasDataExchangeItem(requestId:String, ownerId:String? = null): Boolean {
-    val vm = getDataExchangeViewModel()
-
-    val oId = ownerId ?: getOrCreateDataExchangeUniqueId()
-    val dataPack = vm.getOrCreateDataPack(oId).value!!
-    return dataPack.hasItemSubject(requestId)
-}
-
-fun Fragment.getDataExchangeItemStateChangeSubject(ownerId:String? = null): PublishSubject<Pair<String, Archive.Item<*>>> {
-    val vm = getDataExchangeViewModel()
-
-    val ownerId = ownerId ?: getOrCreateDataExchangeUniqueId()
-    val dataPack = vm.getOrCreateDataPack(ownerId).value!!
-    return dataPack.itemStateChangedSubject
-}
 
 fun Fragment.getDataExchangeViewModel(): DataExchangeViewModel {
     return ViewModelProvider(requireActivity()).get(DataExchangeViewModel::class.java)
 }
 
-fun Fragment.hasExchangeItem(ownerId:String? = getDataExchangeOwnerId(), requestId:String? = getDataExchangeRequestId()):Boolean{
-    val oId = ownerId ?: return false
-    val reqId = requestId ?: return false
 
-    val dataArchive = getDataExchangeSubject(ownerId).value ?: return false
-    if(dataArchive.isItemNullOrUnknownState(reqId)){
+
+fun Fragment.getArchiveSubject(ownerId:String): BehaviorSubject<Archive> {
+    val vm = getDataExchangeViewModel()
+    return vm.getOrCreateArchive(ownerId)
+}
+
+fun Fragment.getOwnedArchiveSubject(): BehaviorSubject<Archive> {
+    return getArchiveSubject(getOrCreateDataExchangeUniqueId())
+}
+
+fun Fragment.getCallerArchiveSubject(): BehaviorSubject<Archive>? {
+    getDataExchangeCallerId()?.let {
+        return getArchiveSubject(it)
+    }
+    return null
+}
+
+
+
+fun Fragment.removeArchiveSubject(ownerId:String): Boolean {
+    val vm = getDataExchangeViewModel()
+    return vm.removeArchive(ownerId)
+}
+fun Fragment.removeOwnedArchiveSubject(): Boolean {
+    getDataExchangeUniqueId(false)?.let {
+        return removeArchiveSubject(ownerId = it)
+    }
+    return false
+}
+fun Fragment.removeCallerArchiveSubject(): Boolean {
+    getDataExchangeCallerId()?.let {
+        return removeArchiveSubject(ownerId = it)
+    }
+    return false
+}
+
+
+fun <T> Fragment.getArchiveItemSubject(requestId:String, ownerId:String): BehaviorSubject<Archive.Item<T>> {
+    val vm = getDataExchangeViewModel()
+
+    val dataPack = vm.getOrCreateArchive(ownerId).value!!
+    return dataPack.getOrCreateItemSubject<T>(requestId = requestId)
+}
+fun <T> Fragment.getOwnedArchiveItemSubject(requestId:String): BehaviorSubject<Archive.Item<T>> {
+    return getArchiveItemSubject(requestId, getOrCreateDataExchangeUniqueId())
+}
+fun <T> Fragment.getCallerArchiveItemSubject(): BehaviorSubject<Archive.Item<T>>? {
+    val requestId = getDataExchangeRequestId() ?: return null
+    val callerId = getDataExchangeCallerId() ?: return null
+    return getArchiveItemSubject(requestId = requestId, ownerId = callerId)
+}
+
+
+
+fun Fragment.removeArchiveItemSubject(requestId:String, ownerId:String): Boolean {
+    val vm = getDataExchangeViewModel()
+
+    val dataPack = vm.getOrCreateArchive(ownerId).value!!
+    return dataPack.removeItemSubject(requestId = requestId)
+}
+fun Fragment.removeOwnedArchiveItemSubject(requestId:String): Boolean {
+    return removeArchiveItemSubject(requestId = requestId, ownerId = getOrCreateDataExchangeUniqueId())
+}
+fun Fragment.removeCallerArchiveItemSubject(): Boolean {
+    val requestId = getDataExchangeRequestId() ?: return false
+    val callerId = getDataExchangeCallerId() ?: return false
+
+    return removeArchiveItemSubject(requestId = requestId, ownerId = callerId)
+}
+
+
+fun Fragment.hasArchiveItemSubject(requestId:String, ownerId:String): Boolean {
+    val vm = getDataExchangeViewModel()
+    val archive = vm.getOrCreateArchive(ownerId).value!!
+    return archive.hasItemSubject(requestId)
+}
+fun Fragment.hasOwnedArchiveItemSubject(requestId:String): Boolean {
+    return hasArchiveItemSubject(requestId = requestId, ownerId = getOrCreateDataExchangeUniqueId())
+}
+fun Fragment.hasCallerArchiveItemSubject(): Boolean {
+    val requestId = getDataExchangeRequestId() ?: return false
+    val callerId = getDataExchangeCallerId() ?: return false
+    return hasArchiveItemSubject(requestId = requestId, ownerId = callerId)
+}
+
+
+
+fun Fragment.getArchiveItemStateChangeSubject(ownerId:String): PublishSubject<Pair<String, Archive.Item<*>>> {
+    val vm = getDataExchangeViewModel()
+
+    val dataPack = vm.getOrCreateArchive(ownerId).value!!
+    return dataPack.itemStateChangedSubject
+}
+fun Fragment.getOwnedArchiveItemStateChangeSubject(): PublishSubject<Pair<String, Archive.Item<*>>> {
+    return getArchiveItemStateChangeSubject(getOrCreateDataExchangeUniqueId())
+}
+fun Fragment.getCallerArchiveItemStateChangeSubject(): PublishSubject<Pair<String, Archive.Item<*>>>? {
+    getDataExchangeCallerId()?.let {
+        return getArchiveItemStateChangeSubject(it)
+    }
+    return null
+}
+
+
+
+fun Fragment.hasArchiveItemState(ownerId:String, requestId:String):Boolean{
+    val dataArchive = getArchiveSubject(ownerId).value ?: return false
+    if(dataArchive.isItemNullOrUnknownState(requestId)){
         return false
     }
-
     return true
 }
+fun Fragment.hasCallerArchiveItemState():Boolean{
+    val requestId = getDataExchangeRequestId() ?: return false
+    val callerId = getDataExchangeCallerId() ?: return false
+    return hasArchiveItemState(ownerId = callerId, requestId = requestId)
+}
+fun Fragment.hasOwnedArchiveItemState(requestId:String):Boolean{
+    return hasArchiveItemState(ownerId = getOrCreateDataExchangeUniqueId(), requestId = requestId)
+}
 
-fun <T> Fragment.setExchangeItem(ownerId:String? = getDataExchangeOwnerId(), requestId:String? = getDataExchangeRequestId(), itemState: Archive.Item.State, data:T? = null):Boolean{
-    val oId = ownerId ?: return false
-    val reqId = requestId ?: return false
 
+
+fun <T> Fragment.setArchiveItem(ownerId:String, requestId:String, itemState: Archive.Item.State, data:T? = null):Boolean{
     val dataBusVm = getDataExchangeViewModel()
-    dataBusVm.saveItem(ownerId = oId, requestId =  reqId, itemState = itemState, data = data)
+    dataBusVm.saveItem(ownerId = ownerId, requestId = requestId, itemState = itemState, data = data)
     return true
 }
+fun <T> Fragment.setCallerArchiveItem(itemState: Archive.Item.State, data:T? = null):Boolean{
+    val requestId = getDataExchangeRequestId() ?: return false
+    val callerId = getDataExchangeCallerId() ?: return false
+    return setArchiveItem(ownerId = callerId, requestId = requestId, itemState = itemState, data = data)
+}
+fun <T> Fragment.setOwnedArchiveItem(requestId:String, itemState: Archive.Item.State, data:T? = null):Boolean{
+    return setArchiveItem(ownerId = getOrCreateDataExchangeUniqueId(), requestId = requestId, itemState = itemState, data = data)
+}
 
-fun Fragment.setExchangeItemStateWithNullData(ownerId:String? = getDataExchangeOwnerId(), requestId:String? = getDataExchangeRequestId(),  itemState: Archive.Item.State):Boolean{
-    val oId = ownerId ?: return false
-    val reqId = requestId ?: return false
 
+
+fun Fragment.setArchiveItemStateWithNullData(ownerId:String, requestId:String, itemState: Archive.Item.State):Boolean{
     val dataBusVm = getDataExchangeViewModel()
-    dataBusVm.saveItem(ownerId = oId, requestId =  reqId, itemState = itemState, data = null)
+    dataBusVm.saveItem(ownerId = ownerId, requestId = requestId, itemState = itemState, data = null)
     return true
 }
+fun Fragment.setCallerArchiveItemStateWithNullData(itemState: Archive.Item.State):Boolean{
+    val requestId = getDataExchangeRequestId() ?: return false
+    val callerId = getDataExchangeCallerId() ?: return false
+    return setArchiveItemStateWithNullData(ownerId = callerId, requestId = requestId, itemState = itemState)
+}
+fun Fragment.setOwnedArchiveItemStateWithNullData(requestId:String, itemState: Archive.Item.State):Boolean{
+    return setArchiveItemStateWithNullData(getOrCreateDataExchangeUniqueId(), requestId, itemState)
+}
+
 
 /** Item 상태를 Unknown 으로 설정 */
-fun Fragment.resetExchangeItemState(ownerId:String? = getDataExchangeOwnerId(), requestId:String? = getDataExchangeRequestId()):Boolean{
-    return setExchangeItemStateWithNullData(ownerId=ownerId, requestId = requestId, itemState = Archive.Item.State.Unknown)
+fun Fragment.resetArchiveItemState(ownerId:String, requestId:String):Boolean{
+    return setArchiveItemStateWithNullData(ownerId=ownerId, requestId = requestId, itemState = Archive.Item.State.Unknown)
+}
+/** Item 상태를 Unknown 으로 설정 */
+fun Fragment.resetCallerArchiveItemState():Boolean{
+    val requestId = getDataExchangeRequestId() ?: return false
+    val callerId = getDataExchangeCallerId() ?: return false
+    return resetArchiveItemState(ownerId = callerId, requestId = requestId)
+}
+/** Item 상태를 Unknown 으로 설정 */
+fun Fragment.resetOwnedArchiveItemState(requestId:String):Boolean{
+    return resetArchiveItemState(ownerId = getOrCreateDataExchangeUniqueId(), requestId = requestId)
 }

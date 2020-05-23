@@ -6,32 +6,32 @@ import kotlin.collections.HashMap
 
 
 class DataExchangeViewModel :  ViewModel() {
-    private val dataMap:HashMap<String, BehaviorSubject<Archive>> = HashMap()
+    private val archiveMap:HashMap<String, BehaviorSubject<Archive>> = HashMap()
 
-    @Synchronized fun findDataPack(id:String): BehaviorSubject<Archive>? {
+    @Synchronized fun findArchive(id:String): BehaviorSubject<Archive>? {
         @Suppress("UNCHECKED_CAST")
-        return dataMap[id]
+        return archiveMap[id]
     }
 
-    @Synchronized fun hasDataPack(id:String): Boolean {
-        return dataMap.containsKey(id)
+    @Synchronized fun hasArchive(id:String): Boolean {
+        return archiveMap.containsKey(id)
     }
 
-    @Synchronized fun getOrCreateDataPack(id:String): BehaviorSubject<Archive> {
+    @Synchronized fun getOrCreateArchive(id:String): BehaviorSubject<Archive> {
         @Suppress("UNCHECKED_CAST")
-        var result = dataMap[id]
+        var result = archiveMap[id]
         if(result == null){
             result = BehaviorSubject.createDefault(Archive())
-            dataMap[id] = result
+            archiveMap[id] = result
         }
 
         return result
     }
 
-    @Synchronized fun removeDataPack(id:String): Boolean {
-        if(hasDataPack(id)){
-            dataMap[id]?.onComplete()
-            dataMap.remove(id)
+    @Synchronized fun removeArchive(id:String): Boolean {
+        if(hasArchive(id)){
+            archiveMap[id]?.onComplete()
+            archiveMap.remove(id)
             return true
         }
         return false
@@ -39,13 +39,13 @@ class DataExchangeViewModel :  ViewModel() {
 
     @Synchronized fun <T> saveItem(ownerId:String, requestId: String, itemState: Archive.Item.State, data:T?) {
         @Suppress("UNCHECKED_CAST")
-        val resultDataPackSubject = getOrCreateDataPack(ownerId)
+        val resultArchiveSubject = getOrCreateArchive(ownerId)
 
-        val resultDataPack = resultDataPackSubject.value!!
-        resultDataPack.setItem(requestId = requestId, itemState = itemState, data = data)
+        val resultArchive = resultArchiveSubject.value!!
+        resultArchive.setItem(requestId = requestId, itemState = itemState, data = data)
 
         // Caller 가 살아있는 경우를 대비하여 무조건 onNext 를 호출한다.
-        resultDataPackSubject.onNext(resultDataPack)
+        resultArchiveSubject.onNext(resultArchive)
     }
 }
 
