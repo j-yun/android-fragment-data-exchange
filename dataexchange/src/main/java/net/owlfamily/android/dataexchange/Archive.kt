@@ -2,6 +2,7 @@ package net.owlfamily.android.dataexchange
 
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
+import java.io.Serializable
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Archive {
@@ -90,7 +91,7 @@ class Archive {
     }
 
     open class Item<T>(open var state: State = State.Unknown, open var data:T? = null) {
-        data class State(val code:Int, val message:String?=null) {
+        data class State(val code:Int, val message:String?=null) : Serializable {
             companion object {
                 val Unknown = State(-1)
             }
