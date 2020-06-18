@@ -7,9 +7,20 @@ import androidx.lifecycle.ViewModelProvider
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 
+/**
+ * All of extensions are same with [FragmentExtensions.kt]
+ * except ActivityDataExchangerKey, getOrCreateArguments, getDataExchangeArguments
+ */
+
+/**
+ * will be used 'key' of bundle in intent
+ */
 @Suppress("SpellCheckingInspection")
 const val ActivityDataExchangerKey = "net.owlfamily.android.dataexchange.ActivityDataExchangerKey"
 
+/**
+  * @return bundle for DataExchange features. this will enable to 'Activity' be Owner of [Archive]. like [Fragment].
+ */
 fun FragmentActivity.getOrCreateArguments(): Bundle {
     var result: Bundle? = intent.getBundleExtra(ActivityDataExchangerKey)
     if(result == null){
@@ -19,6 +30,9 @@ fun FragmentActivity.getOrCreateArguments(): Bundle {
     return result
 }
 
+/**
+ * @return same as [getOrCreateArguments] but 'null' if not exists
+ */
 fun FragmentActivity.getDataExchangeArguments(): Bundle? {
     return intent.getBundleExtra(ActivityDataExchangerKey)
 }
@@ -215,17 +229,14 @@ fun FragmentActivity.setOwnedArchiveItemStateWithNullData(requestId:String, item
 }
 
 
-/** Item 상태를 Unknown 으로 설정 */
 fun FragmentActivity.resetArchiveItemState(ownerId:String, requestId:String):Boolean{
     return setArchiveItemStateWithNullData(ownerId=ownerId, requestId = requestId, itemState = Archive.Item.State.Unknown)
 }
-/** Item 상태를 Unknown 으로 설정 */
 fun FragmentActivity.resetCallerArchiveItemState():Boolean{
     val requestId = getDataExchangeRequestId() ?: return false
     val callerId = getDataExchangeCallerId() ?: return false
     return resetArchiveItemState(ownerId = callerId, requestId = requestId)
 }
-/** Item 상태를 Unknown 으로 설정 */
 fun FragmentActivity.resetOwnedArchiveItemState(requestId:String):Boolean{
     return resetArchiveItemState(ownerId = getOrCreateDataExchangeUniqueId(), requestId = requestId)
 }

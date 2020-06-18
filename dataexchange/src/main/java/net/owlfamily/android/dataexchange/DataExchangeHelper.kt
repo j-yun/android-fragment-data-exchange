@@ -6,6 +6,7 @@ import java.util.*
 @Suppress("MemberVisibilityCanBePrivate")
 class DataExchangeHelper {
     companion object {
+        /** just create unique id */
         fun createRandomID():String {
             return UUID.randomUUID().toString()
         }
@@ -15,6 +16,9 @@ class DataExchangeHelper {
         const val dataExchangeOwnerId = "dataExchangeOwnerId"
         const val dataExchangeRequestId = "dataExchangeRequestId"
 
+        /**
+         * get or create sub bundle in bundle for 'DataExchange'.
+         */
         fun getOrCreateExchangeBundle(fromBundle: Bundle): Bundle {
             var result = fromBundle.getBundle(dataExchangeBundleId)
             if(result == null){
@@ -24,9 +28,12 @@ class DataExchangeHelper {
             return result
         }
 
-        fun getOrCreateExchangeBundleForRequest(fromBundle: Bundle, parentId:String, requestId:String, instanceUniqueId:String? = null): Bundle {
+        /**
+         * bundle creation utility.
+         */
+        fun getOrCreateExchangeBundleForRequest(fromBundle: Bundle, ownerId:String, requestId:String, instanceUniqueId:String? = null): Bundle {
             val bundle = getOrCreateExchangeBundle(fromBundle)
-            bundle.putString(dataExchangeOwnerId, parentId)
+            bundle.putString(dataExchangeOwnerId, ownerId)
             bundle.putString(dataExchangeRequestId, requestId)
             instanceUniqueId?.let { id ->
                 bundle.putString(dataExchangeUniqueId, id)

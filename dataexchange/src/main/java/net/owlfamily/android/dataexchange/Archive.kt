@@ -4,10 +4,19 @@ import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import java.io.Serializable
 
+/**
+ * parent of [Item]s.
+ * "in generally", Activity or Fragment can have and manage one instance of [Archive].
+ */
 @Suppress("MemberVisibilityCanBePrivate")
 class Archive {
+    /** data set of [Item], internal */
     private val innerItemSubjectMap = HashMap<String, BehaviorSubject<Item<*>>>()
+
+    /** data set of [Item] */
     val itemSubjectMap:Map<String, BehaviorSubject<Item<*>>> = innerItemSubjectMap
+
+    /** will notify through this if any item has changes */
     val itemStateChangedSubject: PublishSubject<Pair<String, Item<*>>> = PublishSubject.create()
 
     fun clear(){
@@ -90,6 +99,7 @@ class Archive {
         return false
     }
 
+    /** Child of [Archive]. Each item has state, data */
     open class Item<T>(open var state: State = State.Unknown, open var data:T? = null) {
         data class State(val code:Int, val message:String?=null) : Serializable {
             companion object {

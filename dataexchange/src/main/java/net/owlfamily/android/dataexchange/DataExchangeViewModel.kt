@@ -4,7 +4,10 @@ import androidx.lifecycle.ViewModel
 import io.reactivex.subjects.BehaviorSubject
 import kotlin.collections.HashMap
 
-
+/**
+ * parent of all [Archive]s.
+ * "in generally", Activity manage one instance of [DataExchangeViewModel].
+ */
 class DataExchangeViewModel :  ViewModel() {
     private val archiveMap:HashMap<String, BehaviorSubject<Archive>> = HashMap()
 
@@ -13,6 +16,10 @@ class DataExchangeViewModel :  ViewModel() {
         return archiveMap[id]
     }
 
+    /**
+     * @param id key of archive
+     * @return true if Archive exists for [id]
+     */
     @Synchronized fun hasArchive(id:String): Boolean {
         return archiveMap.containsKey(id)
     }
@@ -37,6 +44,9 @@ class DataExchangeViewModel :  ViewModel() {
         return false
     }
 
+    /**
+     * save item to archive
+     */
     @Synchronized fun <T> saveItem(ownerId:String, requestId: String, itemState: Archive.Item.State, data:T?) {
         @Suppress("UNCHECKED_CAST")
         val resultArchiveSubject = getOrCreateArchive(ownerId)
