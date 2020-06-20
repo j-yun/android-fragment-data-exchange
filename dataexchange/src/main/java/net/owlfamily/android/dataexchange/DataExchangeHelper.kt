@@ -13,8 +13,8 @@ class DataExchangeHelper {
 
         const val dataExchangeBundleId = "dataExchangeBundleId"
         const val dataExchangeUniqueId = "dataExchangeUniqueId"
-        const val dataExchangeOwnerId = "dataExchangeOwnerId"
-        const val dataExchangeRequestId = "dataExchangeRequestId"
+        const val dataExchangeCallerId = "dataExchangeCallerId"
+        const val dataExchangeArchiveItemId = "dataExchangeArchiveItemId"
 
         /**
          * get or create sub bundle in bundle for 'DataExchange'.
@@ -31,10 +31,10 @@ class DataExchangeHelper {
         /**
          * bundle creation utility.
          */
-        fun getOrCreateExchangeBundleForRequest(fromBundle: Bundle, ownerId:String, requestId:String, instanceUniqueId:String? = null): Bundle {
+        fun getOrCreateExchangeBundleForRequest(fromBundle: Bundle, ownerId:String, archiveItemId:String, instanceUniqueId:String? = null): Bundle {
             val bundle = getOrCreateExchangeBundle(fromBundle)
-            bundle.putString(dataExchangeOwnerId, ownerId)
-            bundle.putString(dataExchangeRequestId, requestId)
+            bundle.putString(dataExchangeCallerId, ownerId)
+            bundle.putString(dataExchangeArchiveItemId, archiveItemId)
             instanceUniqueId?.let { id ->
                 bundle.putString(dataExchangeUniqueId, id)
             }

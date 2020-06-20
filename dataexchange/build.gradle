@@ -13,8 +13,8 @@ android {
     defaultConfig {
         minSdkVersion 18
         targetSdkVersion 29
-        versionCode 5
-        versionName "0.3.2"
+        versionCode 6
+        versionName "0.4.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
@@ -41,4 +41,6 @@ dependencies {
     implementation "io.reactivex.rxjava2:rxandroid:$rxandroid_version"
     implementation "io.reactivex:rxkotlin:$rxkotlin_version"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_extentions_version"
+
+    implementation "androidx.navigation:navigation-fragment-ktx:$navigation_version"
 }

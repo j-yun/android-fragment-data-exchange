@@ -47,12 +47,12 @@ class DataExchangeViewModel :  ViewModel() {
     /**
      * save item to archive
      */
-    @Synchronized fun <T> saveItem(ownerId:String, requestId: String, itemState: Archive.Item.State, data:T?) {
+    @Synchronized fun <T> saveItem(ownerId:String, archiveItemId: String, itemState: Archive.Item.State, data:T?) {
         @Suppress("UNCHECKED_CAST")
         val resultArchiveSubject = getOrCreateArchive(ownerId)
 
         val resultArchive = resultArchiveSubject.value!!
-        resultArchive.setItem(requestId = requestId, itemState = itemState, data = data)
+        resultArchive.setItem(archiveItemId = archiveItemId, itemState = itemState, data = data)
 
         // Caller 가 살아있는 경우를 대비하여 무조건 onNext 를 호출한다.
         resultArchiveSubject.onNext(resultArchive)

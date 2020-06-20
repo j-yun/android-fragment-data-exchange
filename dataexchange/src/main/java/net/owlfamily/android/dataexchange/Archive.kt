@@ -26,62 +26,62 @@ class Archive {
         innerItemSubjectMap.clear()
     }
 
-    fun <T> getOrCreateItemSubject(requestId:String): BehaviorSubject<Item<T>> {
-        return getItemSubject(requestId, true)!!
+    fun <T> getOrCreateItemSubject(archiveItemId:String): BehaviorSubject<Item<T>> {
+        return getItemSubject(archiveItemId, true)!!
     }
 
-    fun <T> getItemSubject(requestId:String, createIfNotExists:Boolean = false): BehaviorSubject<Item<T>>? {
-        if(hasItemSubject(requestId)){
+    fun <T> getItemSubject(archiveItemId:String, createIfNotExists:Boolean = false): BehaviorSubject<Item<T>>? {
+        if(hasItemSubject(archiveItemId)){
             @Suppress("UNCHECKED_CAST")
-            return innerItemSubjectMap[requestId] as? BehaviorSubject<Item<T>>
+            return innerItemSubjectMap[archiveItemId] as? BehaviorSubject<Item<T>>
         }else if(createIfNotExists){
-            innerItemSubjectMap[requestId] = BehaviorSubject.create()
+            innerItemSubjectMap[archiveItemId] = BehaviorSubject.create()
             @Suppress("UNCHECKED_CAST")
-            return innerItemSubjectMap[requestId] as BehaviorSubject<Item<T>>
+            return innerItemSubjectMap[archiveItemId] as BehaviorSubject<Item<T>>
         }
         return null
     }
 
-    fun hasItemSubject(requestId:String): Boolean {
-        return innerItemSubjectMap.containsKey(requestId)
+    fun hasItemSubject(archiveItemId:String): Boolean {
+        return innerItemSubjectMap.containsKey(archiveItemId)
     }
 
-    fun removeItemSubject(requestId:String):Boolean {
-        if(hasItemSubject(requestId)){
-            innerItemSubjectMap[requestId]?.onComplete()
-            innerItemSubjectMap.remove(requestId)
+    fun removeItemSubject(archiveItemId:String):Boolean {
+        if(hasItemSubject(archiveItemId)){
+            innerItemSubjectMap[archiveItemId]?.onComplete()
+            innerItemSubjectMap.remove(archiveItemId)
             return true
         }
         return false
     }
 
-    fun <T> findItem(requestId:String, removeSubjectIfFound:Boolean = false): Item<T>? {
+    fun <T> findItem(archiveItemId:String, removeSubjectIfFound:Boolean = false): Item<T>? {
         var result: Item<T>? = null
-        if(innerItemSubjectMap.containsKey(requestId)){
+        if(innerItemSubjectMap.containsKey(archiveItemId)){
             @Suppress("UNCHECKED_CAST")
-            val subject = innerItemSubjectMap[requestId] as BehaviorSubject<Item<T>>
+            val subject = innerItemSubjectMap[archiveItemId] as BehaviorSubject<Item<T>>
             result = subject.value
 
             if(removeSubjectIfFound){
-                innerItemSubjectMap.remove(requestId)
+                innerItemSubjectMap.remove(archiveItemId)
                 subject.onComplete()
             }
         }
         return result
     }
 
-    fun <T> setItem(requestId: String, itemState: Item.State, data:T?) {
+    fun <T> setItem(archiveItemId: String, itemState: Item.State, data:T?) {
         @Suppress("UNCHECKED_CAST")
 
-        val itemSubject = getOrCreateItemSubject<T>(requestId = requestId)
+        val itemSubject = getOrCreateItemSubject<T>(archiveItemId = archiveItemId)
         val item = Item<T>(state = itemState, data = data)
         itemSubject.onNext(item)
-        itemStateChangedSubject.onNext(Pair(requestId,item))
+        itemStateChangedSubject.onNext(Pair(archiveItemId,item))
     }
 
-    fun hasItem(requestId:String): Boolean {
-        if(hasItemSubject(requestId)){
-            if(innerItemSubjectMap[requestId]?.value != null){
+    fun hasItem(archiveItemId:String): Boolean {
+        if(hasItemSubject(archiveItemId)){
+            if(innerItemSubjectMap[archiveItemId]?.value != null){
                 return true
             }
         }
@@ -89,9 +89,9 @@ class Archive {
         return false
     }
 
-    fun isItemNullOrUnknownState(requestId:String): Boolean {
-        if(!hasItemSubject(requestId)) return true
-        val item = innerItemSubjectMap[requestId]?.value ?: return true
+    fun isItemNullOrUnknownState(archiveItemId:String): Boolean {
+        if(!hasItemSubject(archiveItemId)) return true
+        val item = innerItemSubjectMap[archiveItemId]?.value ?: return true
         if(item.state == Item.State.Unknown){
             return true
         }
